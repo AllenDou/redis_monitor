@@ -135,7 +135,7 @@ static void parse(char* ip,int port,char *info)
 								{
 										/*import dynamic info.*/
 										reply = redisCommand(redis, "SELECT %d",dy_p->db);
-										reply = redisCommand(redis,"HSET %s:%d %d %s",ip,port,g_tm,pst+strlen(dy_p->dy_cap)+1);
+										reply = redisCommand(redis,"ZADD %s:%d %d %d_%s",ip,port,g_tm,g_tm,pst+strlen(dy_p->dy_cap)+1);
 								}
 						}
 				}
