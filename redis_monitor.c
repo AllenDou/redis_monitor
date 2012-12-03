@@ -13,6 +13,8 @@
 #define IP		"218.30.115.72"
 #define PORT	6378
 
+#define TIMESPAN	(7*24*3600)
+
 /*srv item.*/
 typedef struct _srv_it_{
 		char ip[128];
@@ -141,6 +143,10 @@ static void parse(char* ip,int port,char *info)
 										reply = redisCommand(redis, "SELECT %d",dy_p->db);
 										freeReplyObject(reply);
 										reply = redisCommand(redis,"ZADD %s:%d %d %d_%s",ip,port,g_tm,g_tm,pst+strlen(dy_p->dy_cap)+1);
+										freeReplyObject(reply);
+										/*reply = redisCommand(redis,"ZRANGEBYSCORE %s:%d 0 %d",ip,port,g_tm - TIMESPAN);
+										freeReplyObject(reply);*/
+										reply = redisCommand(redis,"ZREMRANGEBYSCORE %s:%d 0 %d",ip,port,g_tm - TIMESPAN);
 										freeReplyObject(reply);
 								}
 						}
