@@ -89,8 +89,8 @@ DY_PARAM dy_param_tb[] = {
 };
 
 
-static void parse(char* ip,int port,char *info)
-{
+static void parse(char* ip,int port,char *info){
+
 		/*assert info is not empty.*/
 		if(!strlen(info)) return ;
 
@@ -101,12 +101,10 @@ static void parse(char* ip,int port,char *info)
 		/*connect redis_monitor.*/
 		redis = redisConnectWithTimeout(IP,PORT, timeout);
 		if (redis->err) 
-		{
 				printf("Connection error: %s IP:%s Port:%d\n", redis->errstr,ip,port);
-		}
+
 		/*import ALL info information.*/
 		reply = redisCommand(redis, "SELECT 1");
-		freeReplyObject(reply);
 		reply = redisCommand(redis, "HSET ALL %s:%d %s",ip,port,info);
 		freeReplyObject(reply);
 
@@ -114,38 +112,37 @@ static void parse(char* ip,int port,char *info)
 		pst = info;
 
 		/*parse info string.*/
-		while((ped = strstr(pst,"\r\n")))
-		{
+		while((ped = strstr(pst,"\r\n"))){
+
 				memset(ped,0,2);
 				char *pcolon = strchr(pst,':');
 
 				int i;
-				for(i = 0; pcolon && ( i < sizeof(st_param_tb)/sizeof(ST_PARAM));i++)
-				{
+				for(i = 0; pcolon && ( i < sizeof(st_param_tb)/sizeof(ST_PARAM));i++){
+
 						memset(pcolon,0,1);
 						ST_PARAM *st_p = &st_param_tb[i];
 						int len = strlen(st_p->cap);
-						if(!strcmp(pst,st_p->cap))
-						{
+						if(!strcmp(pst,st_p->cap)){
+
 								/*import static info.*/
 								reply = redisCommand(redis, "SELECT 1");
 								freeReplyObject(reply);
 								reply = redisCommand(redis,"HSET %s %s:%d %s",st_p->cap,ip,port,pst+len+1);
 								freeReplyObject(reply);
 						}
+
 						int j;
-						for(j = 0;j<sizeof(dy_param_tb)/sizeof(DY_PARAM);j++)
-						{
+						for(j = 0;j<sizeof(dy_param_tb)/sizeof(DY_PARAM);j++){
 								DY_PARAM *dy_p = &dy_param_tb[j];
-								if(!strcmp(pst,dy_p->dy_cap))
-								{
+								if(!strcmp(pst,dy_p->dy_cap)){
 										/*import dynamic info.*/
 										reply = redisCommand(redis, "SELECT %d",dy_p->db);
 										freeReplyObject(reply);
 										reply = redisCommand(redis,"ZADD %s:%d %d %d_%s",ip,port,g_tm,g_tm,pst+strlen(dy_p->dy_cap)+1);
 										freeReplyObject(reply);
 										/*reply = redisCommand(redis,"ZRANGEBYSCORE %s:%d 0 %d",ip,port,g_tm - TIMESPAN);
-										freeReplyObject(reply);*/
+										  freeReplyObject(reply);*/
 										reply = redisCommand(redis,"ZREMRANGEBYSCORE %s:%d 0 %d",ip,port,g_tm - TIMESPAN);
 										freeReplyObject(reply);
 								}
@@ -154,31 +151,33 @@ static void parse(char* ip,int port,char *info)
 				pst = ped+2;
 		}
 		redisFree(redis);
+
+		return ;
 }
 
 /*parse all.*/
-static void parseall()
-{
+static void parseall(){
+
 		int i;
 		/*parse every one.*/
-		for(i = 0 ;i < srv_num;i++) parse(psrv[i].ip, psrv[i].port ,psrv[i].info);	
+		for(i = 0 ;i < srv_num;i++) 
+				parse(psrv[i].ip, psrv[i].port ,psrv[i].info);	
+		return ;
 }
 
 /*get all info from redis by infoCommand.*/
-static void get_srv_info()
-{
+static void get_srv_info(){
+
 		redisContext *redis;
 		redisReply *reply;
 		struct timeval timeout = { 1, 0 };
 		int i;
-		for(i = 0;i < srv_num;i++)
-		{
+		for(i = 0;i < srv_num;i++){
 				SRV_ITEM *p = &psrv[i];
 
 				/*connect.*/
 				redis = redisConnectWithTimeout((char*)p->ip, p->port, timeout);
-				if (redis->err) 
-				{
+				if (redis->err){
 						printf("Connection error: %s IP:%s Port:%d\n", redis->errstr,p->ip,p->port);
 						memset(p->info,0,4096);
 						redisFree(redis);
@@ -191,25 +190,23 @@ static void get_srv_info()
 				freeReplyObject(reply);
 				redisFree(redis);
 		}
+		return ;
 }
 
 /*connect monitor.*/
-static int connect_monitor()
-{
+static int connect_monitor(){
 		/*var.*/
 		struct timeval timeout = { 1, 0 }; // 1.5 seconds
 
 		/*connect to monitor srv.*/
 		monitor_srv = redisConnectWithTimeout((char*)IP, 6378, timeout);
-		if (monitor_srv->err) 
-		{
+		if (monitor_srv->err){
 				printf("Connection error: %s IP:%s Port:%d\n", monitor_srv->errstr,IP,PORT);
 				exit(1);
 		}
 
 		/*get server_list.*/
 		reply = redisCommand(monitor_srv, "SELECT 0");
-		freeReplyObject(reply);
 		reply = redisCommand(monitor_srv, "SMEMBERS server_list ");
 
 		srv_num = reply->elements;
@@ -217,8 +214,7 @@ static int connect_monitor()
 
 		/*realloc for all srv.*/
 		psrv = (SRV_ITEM* )realloc(psrv,srv_num*sizeof(SRV_ITEM));
-		if(!psrv)
-		{
+		if(!psrv){
 				fprintf(stderr,"realloc failed.\n");
 				return -1;
 		}
@@ -235,19 +231,16 @@ static int connect_monitor()
 }
 
 /*main*/
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv){
 		fprintf(stdout,"%s\'pid: %d\r\n",argv[0],getpid());
-		while(1)
-		{
+		while(1){
 				sleep(1);
 				time_t t = time(0);
 				if(t%TIME_STEP) continue ;
 				g_tm = t;
 
 				/*connect monitor.*/
-				if(-1==connect_monitor())
-				{
+				if(-1==connect_monitor()){
 						fprintf(stderr,"no server exist, then exit.\n");
 						exit(0);
 				}
