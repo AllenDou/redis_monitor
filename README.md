@@ -54,4 +54,13 @@ redis_monitor
 	% used_memory
 	% used_memory_rss
 	% used_memory_peak
+	% keyspace_hits
+	% keyspace_misses
+	% expired_keys
+	% connected_slaves
+	% mem_fragmentation_ratio
+	% total_commands_processed
+	% rdb_last_save_time(老版本的redis是last_save_time)
+	% uptime_in_seconds
+	% uptime_in_days
 
