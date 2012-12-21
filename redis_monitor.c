@@ -85,7 +85,16 @@ DY_PARAM dy_param_tb[] = {
 		{4,"used_cpu_sys"},
 		{5,"used_memory"},
 		{6,"used_memory_rss"},
-		{7,"used_memory_peak"}
+		{7,"used_memory_peak"},
+		{8,"keyspace_hits"},
+		{9,"keyspace_misses"},
+		{10,"expired_keys"},
+		{11,"connected_slaves"},
+		{12,"mem_fragmentation_ratio"},
+		{13,"total_commands_processed"},
+		{14,"rdb_last_save_time"},/*old version is last_save_time rather than rdb_**/
+		{15,"uptime_in_seconds"},
+		{16,"uptime_in_days"}
 };
 
 
@@ -127,7 +136,6 @@ static void parse(char* ip,int port,char *info){
 
 								/*import static info.*/
 								reply = redisCommand(redis, "SELECT 1");
-								freeReplyObject(reply);
 								reply = redisCommand(redis,"HSET %s %s:%d %s",st_p->cap,ip,port,pst+len+1);
 								freeReplyObject(reply);
 						}
@@ -138,7 +146,6 @@ static void parse(char* ip,int port,char *info){
 								if(!strcmp(pst,dy_p->dy_cap)){
 										/*import dynamic info.*/
 										reply = redisCommand(redis, "SELECT %d",dy_p->db);
-										freeReplyObject(reply);
 										reply = redisCommand(redis,"ZADD %s:%d %d %d_%s",ip,port,g_tm,g_tm,pst+strlen(dy_p->dy_cap)+1);
 										freeReplyObject(reply);
 										/*reply = redisCommand(redis,"ZRANGEBYSCORE %s:%d 0 %d",ip,port,g_tm - TIMESPAN);
