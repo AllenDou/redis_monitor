@@ -249,7 +249,7 @@ int main(int argc, char** argv){
 				/*connect monitor.*/
 				if(-1==connect_monitor()){
 						fprintf(stderr,"no server exist, then exit.\n");
-						exit(0);
+						continue;	
 				}
 				/*get info.*/
 				get_srv_info();
